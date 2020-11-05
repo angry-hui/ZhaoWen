@@ -1,0 +1,27 @@
+##NO.1007001
+
+##故障表现:生产通知单-物料数据显示为0-打印时物料不能显示出来;报表名称:生产制单-配比
+
+##事件联络人：李恒
+
+##解决方案:
+
+后台更新OrderSendMaterial表，将count栏位设置为正确的值.通过关联语句得到的ID来更新
+
+执行逻辑：
+	--通过关联语句取得数量为0的材料的ID号，再通过ID号来更新实际的数量
+
+###* 更新语句
+	--Count数量由用户提供
+	--ID号是下面查询语句的sm.id
+	update OrderSendMaterial set Count = 472 where id = 100138000
+
+###*关联语句:<可通过后台查询语句得到>
+		--DocTreeID可以通过DNA系统log文件获得
+		SELECT sm.ID,sm.DocTreeID,o.StyleDocTreeID,o.MaterialID,s.OrderDocUID,sm.Count, omcd.EachExpend,o.ExpendPercent,sm.OrderSendExpendPercent, 0 as OrderCount,o.OrderCount as CheckOrderCount,Isnull(o.IsMatchShipPort,0) as IsMatchShipPort, o.OrderStyleMaterialID,o.OrderStyleMaterialDetailID,md.OrderStyleColorID,md.OrderStyleSizeID , o.PartName,o.FecthDepartment,o.StyleChild,o.ProviderType,pt.Name as ProviderTypeName, 
+		sm.Provider,p.ProviderName,sm.RequireDate, m.CodePrefix as MaterialCodePrefix,m.Name as MaterialName, m.Remark as MaterialRemark, mt.Name as MaterialType, m.Code as MaterialCode,m.Color as MaterialColor,m.Spec as MaterialSpec,o.MateialActualSpec, 
+		vu.Name as MaterialUnitNo, m.Breadth as MaterialBreadth,m.Element as MaterialElement,sm.Remark,sm.OrderChildID,os.ChildMultiply,m.ColorNameEN,m.SizeNameEN FROM OrderSendMaterial sm (NOLOCK) LEFT JOIN OrderStyleMaterialDetail md (NOLOCK) on md.ID = 
+		sm.OrderStyleMaterialDetailID LEFT JOIN( SELECT OrderStyleMaterialDetailID,EachExpend from OrderMaterialCheckDetail GROUP BY OrderStyleMaterialDetailID,EachExpend) omcd ON omcd.OrderStyleMaterialDetailID=md.ID inner JOIN view_OrderStyleBOMCheckDetail_84 o (NOLOCK) on o.OrderStyleMaterialDetailID = sm.OrderStyleMaterialDetailID inner join OrderSendDocTree st (NOLOCK) on sm.DocTreeID = st.ID inner join OrderSend s (NOLOCK) on st.DocCode = s.UID INNER JOIN view_MXMaterial m (NOLOCK) ON o.MaterialID = m.ID LEFT JOIN view_MaterialUnitNo vu (NOLOCK) ON m.UnitNo = vu.ID LEFT JOIN view_MaterialType mt (NOLOCK) ON m.Type = mt.ID LEFT JOIN view_ProviderType pt (NOLOCK) ON sm.ProviderType = pt.ID LEFT JOIN Provider p (NOLOCK) ON sm.Provider = p.ID inner JOIN (SELECT sm.DocTreeID,sm.OrderChildID,oc.ChildName,min(oc.ChildMultiply) as ChildMultiply FROM OrderSendMatch sm (NOLOCK) left join OrderChild oc (NOLOCK) on sm.StyleDocTreeID=oc.DocTreeID and case when sm.OrderChildID is null then 1 else case when sm.OrderChildID=oc.ID then 1 else 0 end end = 1 group by sm.DocTreeID,sm.OrderChildID,oc.ChildName) os on sm.DocTreeID=os.DocTreeID and isnull(o.StyleChild,0)=isnull(os.ChildName,0) WHERE sm.DocTreeID = 100019755 and o.MaterialID is not null;  
+
+
+###撰写时间:10/7/2020 9:53:01 PM       撰写人:zhousonghui
