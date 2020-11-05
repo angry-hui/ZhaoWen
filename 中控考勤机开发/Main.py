@@ -18,7 +18,7 @@ class Food_Analysis(Ui_mainWindow,QMainWindow):
         self.Button_Catch.clicked.connect(self.catch_data)
         self.ComboBox_IP.addItems(['192.168.1.161','192.168.1.162','192.168.1.166','192.168.1.175','192.168.1.187'])
         self.DateEdit_Start.setDate(QDate(cur_year,cur_month,1))
-        self.DateEdit_End.setDate(QDate(cur_year,cur_month,31))
+        self.DateEdit_End.setDate(QDate(cur_year,cur_month,1))
         self.Button_Query.clicked.connect(self.Data_Query)
         self.Button_Ana.clicked.connect(self.Data_Ana)
         self.Button_Export.clicked.connect(self.Export_Data)
@@ -38,15 +38,15 @@ class Food_Analysis(Ui_mainWindow,QMainWindow):
         zk = win32com.client.Dispatch('zkemkeeper.ZKEM.1')
         kq_ip = self.ComboBox_IP.currentText()
         if not zk.Connect_Net(kq_ip,4370):
-            QMessageBox.information(self,'提示信息', "考勤机" + ip + '连接连接失败!',QMessageBox.Yes)
+            QMessageBox.information(self,'提示信息', "考勤机" + kq_ip + '连接连接失败!', QMessageBox.Yes)
             return    
         if zk.ClearGLog(1):
-            QMessageBox.information(self,"卡机:" + kq_ip + '清除成功!')
+            QMessageBox.information(self,"提示信息","卡机:" + kq_ip + '清除成功!',QMessageBox.Yes)
 
             
     def catch_data(self):
         #kq_ip = ['192.168.1.161','192.168.1.162','192.168.1.166','192.168.1.175','192.168.1.187']
-        kq_ip = ['192.168.1.161']
+        kq_ip = ['192.168.1.187']
         for ip in kq_ip:
             zk = win32com.client.Dispatch('zkemkeeper.ZKEM.1')
             if not zk.Connect_Net(ip,4370):
@@ -61,7 +61,7 @@ class Food_Analysis(Ui_mainWindow,QMainWindow):
                     #print(dwEnrollNumber,dwYear,dwMonth,dwDay,dwHour,dwSecond,dwMinute)
                     kq_id = dwEnrollNumber
                     kq_date = str(dwYear) + "-" +  ("00" + str(dwMonth))[-2:] + "-" + ("00" + str(dwDay))[-2:]
-                    kq_time = ("00" + str(dwHour))[-2:] + ("00" + str(dwSecond))[-2:]
+                    kq_time = ("00" + str(dwHour))[-2:] + ":" + ("00" + str(dwSecond))[-2:]
                     params = ([kq_id])
                     sql = "select employeeid from zwerp.dbo.employee where iccardnumber = ?"
                     result = self.cursor.execute(sql,params).fetchone()           
